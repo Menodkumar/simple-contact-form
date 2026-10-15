@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Form</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 450px;
+      margin: 50px auto;
+      padding: 25px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px #00000010;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 7px;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      font: inherit;
+      border-radius: 8px;
+    }
+
+    input, textarea {
+      border: 1px solid #cbd5e1;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 20px;
+      border: 0;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+    }
+
+    #status {
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <h1>Contact Us</h1>
+    <p>Send us a message.</p>
+
+    <form id="contactForm">
+      <label for="name">Full name</label>
+      <input id="name" name="name"
+        maxlength="100" required>
+
+      <label for="email">Email address</label>
+      <input id="email" name="email"
+        type="email" maxlength="150" required>
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message"
+        maxlength="5000" required></textarea>
+
+      <button id="submitBtn" type="submit">
+        Submit message
+      </button>
+
+      <p id="status" role="status"></p>
+    </form>
+  </main>
+
+  <script type="module">
+    import { createClient }
+      from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://dkfiqfeyfqrqkqjaavtv.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "sb_publishable_tl6neq4R8IDxGsgRRPskSA_DWnW7fD9";
+
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const form = document.getElementById("contactForm");
+    const button = document.getElementById("submitBtn");
+    const status = document.getElementById("status");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const name = form.elements.name.value.trim();
+      const email = form.elements.email.value.trim();
+      const message = form.elements.message.value.trim();
+
+      if (!name || !email || !message) {
+        status.textContent = "Please fill in every field.";
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = "Submitting...";
+
+      try {
+        const { error } = await supabase
+          .from("submissions")
+          .insert([{ name, email, message }]);
+
+        if (error) throw error;
+
+        status.textContent = "Message submitted successfully!";
+        form.reset();
+
+      } catch (error) {
+        console.error("Submission failed:", error);
+        status.textContent =
+          "Submission failed. Please try again.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
